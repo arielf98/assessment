@@ -16,7 +16,7 @@ function Dashboard() {
         validate: {
             caseName: (value) => value.length < 2 ? 'Case name must be at least 2 characters' : null,
             duration: (value) => isNaN(Number(value)) || Number(value) <= 0 ? 'Duration must be a positive number' : null,
-            location: (value) => value.length < 2 ? 'Location must be at least 2 characters' : null,
+            location: (value) => value.length === 0 ? 'At least one location must be selected' : null,
             city: (value) => value.length < 2 ? 'City must be at least 2 characters' : null,
         }
     });
@@ -109,11 +109,11 @@ function Dashboard() {
                             placeholder="Enter city"
                             {...form.getInputProps('city')}
                         />
+                        <Button mt="md" type="submit">
+                            Submit
+                        </Button>
                     </form>
 
-                    <Button mt="md" type="submit">
-                        Submit
-                    </Button>
                 </Card>
                 <Card p="lg" radius="md" withBorder style={{ flex: "1 1 600px" }}>
                     <Text size="md" fw="700">Team</Text>
