@@ -11,6 +11,18 @@ async function getAllJobs(req: Request, res: Response) {
     }
 }
 
+async function createJob(req: Request, res: Response) {
+    try {
+        const jobData = req.body;
+        const newJob = await JobService.createJob(jobData);
+        res.status(201).json({ success: true, data: newJob });
+    } catch (error) {
+        console.error('Error creating job:', error);
+        res.status(500).json({ success: false, error: 'Internal Server Error' });
+    }
+}
+
 export {
     getAllJobs,
+    createJob
 };
