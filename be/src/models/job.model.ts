@@ -8,6 +8,8 @@ type CreateJobPayload = {
     city: string;
     reporter_id: number;
     editor_id: number;
+    reporter_earning?: number;
+    editor_earning?: number;
 };
 
 type UpdateJobPayload = Partial<{
@@ -18,6 +20,8 @@ type UpdateJobPayload = Partial<{
     status: string;
     reporter_id: number | null;
     editor_id: number | null;
+    reporter_earning: number;
+    editor_earning: number;
 }>;
 
 function getAllJobs() {
@@ -35,7 +39,8 @@ function getAllJobs() {
         .select(
             'job.*',
             'reporters.name as reporter_name',
-            'editors.name as editor_name'
+            'editors.name as editor_name',
+            'editors.rate as editor_rate'
         );
 }
 
@@ -46,7 +51,9 @@ async function createJob(job: CreateJobPayload) {
         location: job.location,
         city: job.city,
         reporter_id: job.reporter_id,
-        editor_id: job.editor_id
+        editor_id: job.editor_id,
+        reporter_earning: job.reporter_earning ?? 0,
+        editor_earning: job.editor_earning ?? 0
     });
 
     return db('job').where({ id }).first();
@@ -67,7 +74,7 @@ async function updateJob(id: number, job: UpdateJobPayload) {
     if (!getJob) {
         throw new Error(`Job with id ${id} not found`);
     }
-    const allowedFields = ['case_name', 'duration', 'location', 'city', 'status', 'reporter_id', 'editor_id'];
+    const allowedFields = ['case_name', 'duration', 'location', 'city', 'status', 'reporter_id', 'editor_id', 'reporter_earning', 'editor_earning'];
     const updateData: any = {};
 
     for (const field of allowedFields) {
