@@ -22,7 +22,20 @@ async function createJob(req: Request, res: Response) {
     }
 }
 
+async function updateJob(req: Request, res: Response) {
+    try {
+        const jobId = parseInt(req.params.id as string, 10);
+        const jobData = req.body;
+        const updatedJob = await JobService.updateJob(jobId, jobData);
+        res.json({ success: true, data: updatedJob });
+    } catch (error) {
+        console.error('Error updating job:', error);
+        res.status(500).json({ success: false, error: 'Internal Server Error' });
+    }
+}   
+
 export {
     getAllJobs,
-    createJob
+    createJob,
+    updateJob
 };
