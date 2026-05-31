@@ -1,53 +1,206 @@
 import { Badge, Box, Button, Card, Divider, Flex, Select, SimpleGrid, Text, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { DataTable, type DataTableColumn } from "mantine-datatable";
+import React, { useEffect } from "react";
 
+
+type Reporter = {
+    id: number;
+    name: string;
+    location_type: string;
+    city: string;
+    availability: string;
+};
+
+type Editor = {
+    id: number;
+    name: string;
+    location_type: string;
+    city: string;
+    availability: string;
+    rate: number;
+};
+
+export type Jobs = {
+    id: number;
+    case_name: string;
+    duration: number;
+    location: string;
+    status: "NEW" | "ASSIGNED" | "TRANSCRIBED" | "REVIEWED" | "COMPLETED";
+    city: string;
+    reporter_id: number | null;
+    editor_id: number | null;
+    created_at: string;
+    payout: number | null;
+};
+
+type CreateJobForm = {
+    case_name: string;
+    duration: string;
+    location: string;
+    city: string;
+};
+
+const STATUS_COLORS: Record<Jobs["status"], string> = {
+    NEW: "gray",
+    ASSIGNED: "yellow",
+    TRANSCRIBED: "orange",
+    REVIEWED: "cyan",
+    COMPLETED: "green",
+};
+
+const STATUS_LABELS: Record<Jobs["status"], string> = {
+    NEW: "New",
+    ASSIGNED: "Assigned",
+    TRANSCRIBED: "Transcribed",
+    REVIEWED: "Reviewed",
+    COMPLETED: "Completed",
+};
+
+const BUTTON_LABELS: Record<Jobs["status"], string> = {
+    NEW: "Assign",
+    ASSIGNED: "Transcribe",
+    TRANSCRIBED: "Review",
+    REVIEWED: "Complete",
+    COMPLETED: "Completed",
+};
 
 function Dashboard() {
+
+    const [reporters, setReporters] = React.useState<Reporter[]>([]);
+    const [editors, setEditors] = React.useState<Editor[]>([]);
+    const [jobs, setJobs] = React.useState<Jobs[]>([]);
 
     const form = useForm({
         mode: "uncontrolled",
         initialValues: {
-            caseName: '',
+            case_name: '',
             duration: '',
             location: '',
             city: '',
         },
         validate: {
-            caseName: (value) => value.length < 2 ? 'Case name must be at least 2 characters' : null,
+            case_name: (value) => value.length < 2 ? 'Case name must be at least 2 characters' : null,
             duration: (value) => isNaN(Number(value)) || Number(value) <= 0 ? 'Duration must be a positive number' : null,
             location: (value) => value.length === 0 ? 'At least one location must be selected' : null,
             city: (value) => value.length < 2 ? 'City must be at least 2 characters' : null,
         }
     });
 
-    const columns: DataTableColumn[] = [
-        { accessor: 'Case' },
-        { accessor: 'Location' },
+    const columns: DataTableColumn<Jobs>[] = [
+        { accessor: 'id', title: "Job ID" },
+        { accessor: 'case_name', title: "Case" },
+        { accessor: 'duration', title: "Duration" },
+        {accessor: 'location', title: "Location" },
         {
-            accessor: 'Status', render: () => {
-                return <Badge color={"green"} size="xs">{"Available"}</Badge>;
+            accessor: 'status', render: (record) => {
+                return <Badge color={STATUS_COLORS[record.status.toUpperCase() as keyof typeof STATUS_COLORS]} size="xs">{STATUS_LABELS[record.status.toUpperCase() as keyof typeof STATUS_LABELS]}</Badge>;
             }
         },
-        { accessor: 'Reporter' },
-        { accessor: 'Editor' },
-        { accessor: 'Payout' },
+        {
+            accessor: 'reporter', title: "Reporter", render: (record) => {
+                return record.reporter_id ? (<Text>{record.reporter_id}</Text>) : (
+                    <Badge color="red" size="xs">Unassigned</Badge>
+                );
+
+            }
+        },
+        {
+            accessor: 'editor', title: "Editor", render: (record) => {
+                return record.editor_id ? (<Text>{record.editor_id}</Text>) : (
+                    <Badge color="red" size="xs">Unassigned</Badge>
+                );
+            }
+        },
+        {
+            accessor: 'payout', title: "Payout", render: (record) => {
+                return <Text>${record.payout ? record.payout.toFixed(2) : 'N/A'}</Text>;
+            }
+        },
         {
             accessor: 'actions',
             title: <Box mr={6}>Actions</Box>,
             width: "0%",
             textAlign: 'right',
-            render: () => (
-                <Button variant="light" color="green" size="xs">View</Button>
+            render: (record) => (
+                <Button variant="light" color={STATUS_COLORS[record.status.toUpperCase() as keyof typeof STATUS_COLORS]} size="xs">
+                    {BUTTON_LABELS[record.status.toUpperCase() as keyof typeof BUTTON_LABELS]}
+                </Button>
             ),
         },
     ]
 
-    const data = [
-        { Case: 'Case A', Location: 'On-site, Bandung', Status: 'In Progress', Reporter: 'Jane Doe', Editor: 'John Doe', Payout: '$250' },
-        { Case: 'Case B', Location: 'Remote, Jakarta', Status: 'Completed', Reporter: 'Alice Smith', Editor: 'Bob Johnson', Payout: '$500' },
-        { Case: 'Case C', Location: 'On-site, Surabaya', Status: 'In Progress', Reporter: 'Charlie Brown', Editor: 'Eve Davis', Payout: '$300' },
-    ]
+
+    async function fetchJobs() {
+        try {
+            const response = await fetch('http://localhost:3001/api/jobs');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error("Error fetching jobs:", error);
+        }
+    }
+
+    async function fetchReporters() {
+        try {
+            const response = await fetch('http://localhost:3001/api/reporters');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error("Error fetching reporters:", error);
+        }
+    }
+
+
+    async function fetchEditors() {
+        try {
+            const response = await fetch('http://localhost:3001/api/editors');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error("Error fetching editors:", error);
+        }
+    }
+
+    async function createJob(jobs: CreateJobForm) {
+        try {
+            const response = await fetch('http://localhost:3001/api/jobs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(jobs),
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error("Error creating job:", error);
+        }
+    }
+
+    useEffect(() => {
+        fetchJobs().then((data) => {
+            setJobs(data.data);
+        });
+        fetchReporters().then((data) => {
+            setReporters(data);
+        });
+        fetchEditors().then((data) => {
+            setEditors(data.data);
+        });
+    }, []);
 
     return (
         <div>
@@ -71,15 +224,17 @@ function Dashboard() {
             <Flex gap={"md"} mt={"md"} wrap={"wrap"}>
                 <Card p="lg" radius="md" withBorder style={{ flex: "1 1 300px" }}>
                     <Text c="gray" fw="600" size="xs">Total Jobs</Text>
-                    <Text size="xl" fw="700">24</Text>
+                    <Text size="xl" fw="700">{jobs.length}</Text>
                 </Card>
                 <Card p="lg" radius="md" withBorder style={{ flex: "1 1 300px" }}>
                     <Text c="gray" fw="600" size="xs">In Progress</Text>
-                    <Text size="xl" fw="700">5</Text>
+                    <Text size="xl" fw="700">{jobs.filter((job) => job.status === 'ASSIGNED').length}</Text>
                 </Card>
                 <Card p="lg" radius="md" withBorder style={{ flex: "1 1 300px" }}>
                     <Text c="gray" fw="600" size="xs">Total Payout</Text>
-                    <Text size="xl" fw="700">$12,345</Text>
+                    <Text size="xl" fw="700">
+                        ${jobs.reduce((total, job) => total + (job.payout || 0), 0).toFixed(2)}
+                    </Text>
                 </Card>
             </Flex>
 
@@ -87,11 +242,18 @@ function Dashboard() {
                 <Card p="lg" radius="md" withBorder style={{ flex: "1 1 300px" }}>
                     <Text fw="700" size="xl">Create Job</Text>
 
-                    <form onSubmit={form.onSubmit((values) => console.log(values))}>
+                    <form onSubmit={form.onSubmit((values) => {
+                        createJob(values).then(() => {
+                            form.reset();
+                            fetchJobs().then((data) => {
+                                setJobs(data.data);
+                            });
+                        });
+                    })}>
                         <TextInput
                             label="Case Name"
                             placeholder="Enter case name"
-                            {...form.getInputProps('caseName')}
+                            {...form.getInputProps('case_name')}
                         />
                         <TextInput
                             label="Duration"
@@ -122,29 +284,39 @@ function Dashboard() {
                         <Box>
                             <Text fw="600">Reporters</Text>
 
-                            <Card mt="sm" withBorder p="sm">
-                                <Text>Jane Doe</Text>
-                                <Flex gap="xs" mt="xs">
-                                    <Text size="xs" c="gray">On-site </Text>
-                                    <Divider orientation="vertical" />
-                                    <Text size="xs" c="gray">Bandung </Text>
-                                    <Divider orientation="vertical" />
-                                    <Badge color="green" size="xs">Available</Badge>
-                                </Flex>
-                            </Card>
+                            {reporters?.map((reporter) => (
+                                <Card key={reporter.id} mt="sm" withBorder p="sm">
+                                    <Text>{reporter.name}</Text>
+                                    <Flex gap="xs" mt="xs">
+                                        <Text size="xs" c="gray">{reporter.location_type} </Text>
+                                        <Divider orientation="vertical" />
+                                        <Text size="xs" c="gray">{reporter.city} </Text>
+                                        <Divider orientation="vertical" />
+                                        <Badge color={reporter.availability === "Available" ? "green" : "red"} size="xs">
+                                            {reporter.availability}
+                                        </Badge>
+                                    </Flex>
+                                </Card>
+                            ))}
+
                         </Box>
                         <Box>
                             <Text fw="600">Editors</Text>
-                            <Card mt="sm" withBorder p="sm">
-                                <Text>John Doe</Text>
-                                <Flex gap="xs" mt="xs">
-                                    <Text size="xs" c="gray">On-site </Text>
-                                    <Divider orientation="vertical" />
-                                    <Text size="xs" c="gray">Bandung </Text>
-                                    <Divider orientation="vertical" />
-                                    <Badge color="green" size="xs">Available</Badge>
-                                </Flex>
-                            </Card>
+
+                            {editors?.map((editor) => (
+                                <Card key={editor.id} mt="sm" withBorder p="sm">
+                                    <Text>{editor.name} | ${editor.rate.toFixed(2)}</Text>
+                                    <Flex gap="xs" mt="xs">
+                                        <Text size="xs" c="gray">{editor.location_type} </Text>
+                                        <Divider orientation="vertical" />
+                                        <Text size="xs" c="gray">{editor.city} </Text>
+                                        <Divider orientation="vertical" />
+                                        <Badge color={editor.availability === "Available" ? "green" : "red"} size="xs">
+                                            {editor.availability}
+                                        </Badge>
+                                    </Flex>
+                                </Card>
+                            ))}
                         </Box>
                     </SimpleGrid>
 
@@ -160,7 +332,7 @@ function Dashboard() {
                     <DataTable
                         columns={columns}
                         emptyState="No jobs found"
-                        records={data} />
+                        records={jobs} />
                 </Card>
             </Flex>
         </div>
