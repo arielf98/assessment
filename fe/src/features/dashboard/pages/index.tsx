@@ -2,6 +2,8 @@ import { Badge, Box, Button, Card, Divider, Flex, Select, SimpleGrid, Text, Text
 import { useForm } from "@mantine/form";
 import { DataTable, type DataTableColumn } from "mantine-datatable";
 import React, { useEffect } from "react";
+import ModalComp from "../../../components/ModalComp";
+import { useDisclosure } from "@mantine/hooks";
 
 
 type Reporter = {
@@ -32,6 +34,8 @@ export type Jobs = {
     editor_id: number | null;
     created_at: string;
     payout: number | null;
+    editor_name?: string;
+    reporter_name?: string;
 };
 
 type CreateJobForm = {
@@ -70,6 +74,7 @@ function Dashboard() {
     const [reporters, setReporters] = React.useState<Reporter[]>([]);
     const [editors, setEditors] = React.useState<Editor[]>([]);
     const [jobs, setJobs] = React.useState<Jobs[]>([]);
+    const [opened, { open, close }] = useDisclosure(false);
 
     const form = useForm({
         mode: "uncontrolled",
@@ -91,7 +96,8 @@ function Dashboard() {
         { accessor: 'id', title: "Job ID" },
         { accessor: 'case_name', title: "Case" },
         { accessor: 'duration', title: "Duration" },
-        {accessor: 'location', title: "Location" },
+        { accessor: 'location', title: "Location" },
+        { accessor: 'city', title: "City" },
         {
             accessor: 'status', render: (record) => {
                 return <Badge color={STATUS_COLORS[record.status.toUpperCase() as keyof typeof STATUS_COLORS]} size="xs">{STATUS_LABELS[record.status.toUpperCase() as keyof typeof STATUS_LABELS]}</Badge>;
@@ -99,7 +105,7 @@ function Dashboard() {
         },
         {
             accessor: 'reporter', title: "Reporter", render: (record) => {
-                return record.reporter_id ? (<Text>{record.reporter_id}</Text>) : (
+                return record.reporter_id ? (<Text size="sm">{record.reporter_name}</Text>) : (
                     <Badge color="red" size="xs">Unassigned</Badge>
                 );
 
@@ -107,7 +113,7 @@ function Dashboard() {
         },
         {
             accessor: 'editor', title: "Editor", render: (record) => {
-                return record.editor_id ? (<Text>{record.editor_id}</Text>) : (
+                return record.editor_id ? (<Text size="sm">{record.editor_name}</Text>) : (
                     <Badge color="red" size="xs">Unassigned</Badge>
                 );
             }
@@ -123,7 +129,7 @@ function Dashboard() {
             width: "0%",
             textAlign: 'right',
             render: (record) => (
-                <Button variant="light" color={STATUS_COLORS[record.status.toUpperCase() as keyof typeof STATUS_COLORS]} size="xs">
+                <Button onClick={open} variant="light" color={STATUS_COLORS[record.status.toUpperCase() as keyof typeof STATUS_COLORS]} size="xs">
                     {BUTTON_LABELS[record.status.toUpperCase() as keyof typeof BUTTON_LABELS]}
                 </Button>
             ),
@@ -335,6 +341,7 @@ function Dashboard() {
                         records={jobs} />
                 </Card>
             </Flex>
+            <ModalComp opened={opened} close={close} />
         </div>
     );
 }
