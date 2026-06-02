@@ -33,7 +33,7 @@ npm run dev
 
 Open `http://localhost:5173`.
 
-The SQLite database is created automatically at `be/dev.sqlite3`. You can override it:
+The SQLite database is created automatically at `be/dev.sqlite3`:
 
 ## REST API
 
