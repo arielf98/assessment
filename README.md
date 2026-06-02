@@ -13,6 +13,8 @@ Fullstack assessment implementation for a simplified court reporting workflow sy
   - Editor: flat fee per editor
 - Serve a simple dashboard and REST API from the same Node server.
 
+![My Project Screenshot](screenshot.png)
+
 ## Requirements
 
 - Node.js 24 or newer
