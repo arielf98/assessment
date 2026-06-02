@@ -35,7 +35,6 @@ Open `http://localhost:5173`.
 
 The SQLite database is created automatically at `be/dev.sqlite3`. You can override it:
 
-
 ## REST API
 
 ### Jobs
@@ -44,9 +43,7 @@ The SQLite database is created automatically at `be/dev.sqlite3`. You can overri
 GET /api/jobs
 POST /api/jobs
 GET /api/jobs/:id
-POST /api/jobs/:id/assign-reporter
-POST /api/jobs/:id/assign-editor
-PATCH /api/jobs/:id/status
+PUT /api/jobs/:id
 ```
 
 Create job payload:
@@ -73,7 +70,7 @@ Update status payload:
 ```http
 GET /api/reporters
 POST /api/reporters
-PATCH /api/reporters/:id/availability
+PUT /api/reporters/:id
 GET /api/editors
 POST /api/editors
 PATCH /api/editors/:id/availability
