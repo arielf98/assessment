@@ -73,7 +73,7 @@ POST /api/reporters
 PUT /api/reporters/:id
 GET /api/editors
 POST /api/editors
-PATCH /api/editors/:id/availability
+PUT /api/editors/:id
 ```
 
 ### Payments
