@@ -26,7 +26,37 @@ async function getReporterByCity(req: Request, res: Response) {
     }
 }
 
+async function createReporter(req: Request, res: Response) {
+    const reporterData = req.body;
+    try {
+        const newReporterId = await reportersService.createReporter(reporterData);
+        res.status(201).json({ id: newReporterId });
+    } catch (error) {
+        console.error('Error creating reporter:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
+async function updateReporter(req: Request, res: Response) {
+    const id = parseInt(req.params.id as string, 10);
+    const reporterData = req.body;
+    try {
+        const updatedReporter = await reportersService.updateReporter(id, reporterData);
+        if (updatedReporter) {
+            res.json(updatedReporter);
+        } else {
+            res.status(404).json({ error: 'Reporter not found' });
+        }
+    } catch (error) {
+        console.error(`Error updating reporter with id ${id}:`, error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
 export {
     getAllReporters,
-    getReporterByCity
+    getReporterByCity,
+    createReporter,
+    updateReporter
+
 };
